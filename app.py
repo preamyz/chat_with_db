@@ -5,60 +5,113 @@ import google.generativeai as genai
 st.title("Chat with Database")
 st.subheader("Interactive Conversation with Data to Reveal Insights")
 
-key = st.secrets['gemini_api_key']
-genai.configure(api_key=key)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Gemini API Key #
+model = None
+try:
+    genai.configure(api_key="AIzaSyDWgnaByVSYbq-bpBHcJnYsMSHLrZSv_HA")
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    st.success("✅ Gemini model is ready!")
+except Exception as e:
+    st.error(f"Failed to configure Gemini: {e}")
 
+# Session State #
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "uploaded_data" not in st.session_state:
     st.session_state.uploaded_data = None
 
+# Upload Files #
+st.subheader("Browse Your Data")
+col1, col2 = st.columns(2)
+
+with col1:
+    data_file = st.file_uploader("Upload dataset (in csv format)", type="csv")
+    if data_file:
+        try:
+            st.session_state.csv_data = pd.read_csv(data_file)
+            st.success("✅ Data loaded")
+            st.dataframe(st.session_state.csv_data.head())
+        except Exception as e:
+            st.error(f"❌ Failed to read CSV: {e}")
+
+# Chat History #
 for role, message in st.session_state.chat_history:
     st.chat_message(role).markdown(message)
 
-st.subheader("Upload CSV for Analysis")
-uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
-if uploaded_file is not None:
-    try:
-        st.session_state.uploaded_data = pd.read_csv(uploaded_file)
-        st.success("File successfully uploaded and read.")
-        st.write("### Uploaded Data Preview")
-        st.dataframe(st.session_state.uploaded_data.head())
-    except Exception as e:
-        st.error(f"An error occurred while reading the file: {e}")
+# -------- Chat Input -------- #
+if user_input := st.chat_input("Ask your question about the data..."):
 
-analyze_data_checkbox = st.checkbox("Analyze CSV Data with AI")
-
-if user_input := st.chat_input("Type your message here..."):
-    st.session_state.chat_history.append(("user", user_input))
     st.chat_message("user").markdown(user_input)
+    st.session_state.chat_history.append(("user", user_input))
 
-    if model:
+    if not model:
+        st.warning("Please configure Gemini first.")
+    elif st.session_state.csv_data is None:
+        st.warning("Please upload a dataset first.")
+    else:
         try:
-            if st.session_state.uploaded_data is not None and analyze_data_checkbox:
-                if "analyze" in user_input.lower() or "insight" in user_input.lower():
-                    data_description = st.session_state.uploaded_data.describe().to_string()
-                    prompt = f"Analyze the following dataset and provide insights:\n\n{data_description}"
-                    response = model.generate_content(prompt)
-                    bot_response = response.text
-                else:
-                    response = model.generate_content(user_input)
-                    bot_response = response.text
-                st.session_state.chat_history.append(("assistant", bot_response))
-                st.chat_message("assistant").markdown(bot_response)
+            df_name = "df"
+            df = st.session_state.csv_data
+            question = user_input
+            example_record = st.session_state.csv_data.head(2).to_string()
 
-            elif not analyze_data_checkbox:
-                bot_response = "Data analysis is disabled. Please select the 'Analyze CSV Data with AI' checkbox to enable analysis."
-                st.session_state.chat_history.append(("assistant", bot_response))
-                st.chat_message("assistant").markdown(bot_response)
+            prompt = f"""
+You are a helpful Python code generator.
+Your job is to write Python code snippets based on the user's question and the provided DataFrame information.
 
-            else:
-                bot_response = "Please upload a CSV file first, then ask me to analyze it."
-                st.session_state.chat_history.append(("assistant", bot_response))
-                st.chat_message("assistant").markdown(bot_response)
+Please generate Python code that:
+- uses a DataFrame named `{df_name}`
+- stores the result in a variable called `ANSWER`
+- does NOT import pandas
+- changes date columns to datetime if needed
+- uses exec() to run the code
+
+Here’s the context:
+
+**User Question:**
+{question}
+
+**DataFrame Name:**
+{df_name}
+
+**DataFrame Details:**
+{data_dict_text}
+
+**Sample Data (Top 2 Rows):**
+{example_record}
+
+Output only the code. No explanation.
+"""
+
+            response = model.generate_content(prompt)
+            code = response.text.strip("```python").strip("```").strip()
+
+            # execute the generated code
+            try:
+                local_vars = {"df": df}
+                exec(code, local_vars)
+                ANSWER = local_vars.get("ANSWER", "No variable named ANSWER was found.")
+                st.success("✅ Code executed successfully.")
+                st.write("🧾 **Result (ANSWER):**")
+                st.write(ANSWER)
+
+ # -------- Explain Result -------- #
+                explain_the_results = f'''
+The user asked: "{question}"  
+Here is the result: {ANSWER}  
+Please summarize this answer and provide your interpretation.  
+Include your opinion on the customer's persona or behavior based on the result.
+'''
+                explanation_response = model.generate_content(explain_the_results)
+                explanation = explanation_response.text
+
+                st.write("🧠 **Gemini's Explanation:**")
+                st.markdown(explanation)
+
+            except Exception as exec_error:
+                st.error(f"⚠️ Error running generated code: {exec_error}")
+
+            st.session_state.chat_history.append(("assistant", f"Answer: {ANSWER}"))
 
         except Exception as e:
-            st.error(f"An error occurred while generating the response: {e}")
-    else:
-        st.warning("Please configure the Gemini API Key to enable chat responses.")
+            st.error(f"❌ Error generating response: {e}")

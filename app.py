@@ -22,17 +22,16 @@ if "uploaded_data" not in st.session_state:
 
 # Upload Files #
 st.subheader("Browse Your Data")
-col1, col2 = st.columns(2)
 
-with col1:
-    data_file = st.file_uploader("Upload dataset (in csv format)", type="csv")
-    if data_file:
-        try:
-            st.session_state.csv_data = pd.read_csv(data_file)
-            st.success("✅ Data loaded")
-            st.dataframe(st.session_state.csv_data.head())
-        except Exception as e:
-            st.error(f"❌ Failed to read CSV: {e}")
+data_file = st.file_uploader("Upload dataset (in csv format)", type="csv")
+
+if data_file:
+    try:
+        st.session_state.csv_data = pd.read_csv(data_file)
+        st.success("✅ Data loaded")
+        st.dataframe(st.session_state.csv_data.head())
+    except Exception as e:
+        st.error(f"❌ Failed to read CSV: {e}")
 
 # Chat History #
 for role, message in st.session_state.chat_history:

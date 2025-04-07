@@ -52,7 +52,7 @@ if user_input := st.chat_input("Ask your question about the data..."):
             df_name = "df"
             df = st.session_state.csv_data
             question = user_input
-            example_record = st.session_state.csv_data.head(2).to_string()
+            example_record = df.head(2).to_string()
 
             prompt = f"""
 You are a helpful Python code generator.
@@ -73,9 +73,6 @@ Here’s the context:
 **DataFrame Name:**
 {df_name}
 
-**DataFrame Details:**
-{data_dict_text}
-
 **Sample Data (Top 2 Rows):**
 {example_record}
 
@@ -94,7 +91,7 @@ Output only the code. No explanation.
                 st.write("🧾 **Result (ANSWER):**")
                 st.write(ANSWER)
 
- # Explain Result #
+                # Explain Result #
                 explain_the_results = f'''
 The user asked: "{question}"  
 Here is the result: {ANSWER}  

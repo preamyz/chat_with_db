@@ -8,8 +8,8 @@ st.subheader("Interactive Conversation with Data to Reveal Insights")
 # -------- Gemini Config -------- #
 model = None
 try:
-    genai.configure(api_key="AIzaSyDWgnaByVSYbq-bpBHcJnYsMSHLrZSv_HA")
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    genai.configure(api_key="AIzaSyCycIJ35pKnWIY8391m2FZB5mzh2UncVtA")
+    model = genai.GenerativeModel("gemini-2.0-flash-lite")
     st.success("✅ Gemini model is ready!")
 except Exception as e:
     st.error(f"Failed to configure Gemini: {e}")
@@ -22,7 +22,7 @@ if "csv_data" not in st.session_state:
 
 # -------- Upload Files -------- #
 st.subheader("📁 Upload Your Dataset")
-data_file = st.file_uploader("Upload dataset (in csv format)", type="csv")
+data_file = st.file_uploader("Upload dataset (CSV only)", type="csv")
 
 if data_file:
     try:

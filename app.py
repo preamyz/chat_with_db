@@ -22,7 +22,6 @@ if "uploaded_data" not in st.session_state:
 
 # Upload Files #
 st.subheader("Browse Your Data")
-
 data_file = st.file_uploader("Upload dataset (in csv format)", type="csv")
 
 if data_file:
@@ -39,7 +38,6 @@ for role, message in st.session_state.chat_history:
 
 # Chat Input #
 if user_input := st.chat_input("Ask your question about the data..."):
-
     st.chat_message("user").markdown(user_input)
     st.session_state.chat_history.append(("user", user_input))
 
@@ -82,30 +80,37 @@ Output only the code. No explanation.
             response = model.generate_content(prompt)
             code = response.text.strip("```python").strip("```").strip()
 
-            # execute the generated code
-            try:
-                local_vars = {"df": df}
-                exec(code, local_vars)
-                ANSWER = local_vars.get("ANSWER", "No variable named ANSWER was found.")
-                st.success("✅ Code executed successfully.")
-                st.write("🧾 **Result (ANSWER):**")
-                st.write(ANSWER)
+            # แสดงโค้ดที่ AI สร้างขึ้น
+            st.write("🧾 **Generated Code:**")
+            st.code(code, language="python")
 
-                # Explain Result #
-                explain_the_results = f'''
+            # ตรวจสอบว่ามีตัวแปร ANSWER หรือไม่
+            if "ANSWER" not in code:
+                st.error("❌ Generated code does not contain 'ANSWER'.")
+            else:
+                try:
+                    local_vars = {"df": df}
+                    exec(code, local_vars)
+                    ANSWER = local_vars.get("ANSWER", "No variable named ANSWER was found.")
+                    st.success("✅ Code executed successfully.")
+                    st.write("🧾 **Result (ANSWER):**")
+                    st.write(ANSWER)
+
+                    # อธิบายผลลัพธ์
+                    explain_the_results = f'''
 The user asked: "{question}"  
 Here is the result: {ANSWER}  
 Please summarize this answer and provide your interpretation.  
 Include your opinion on the customer's persona or behavior based on the result.
 '''
-                explanation_response = model.generate_content(explain_the_results)
-                explanation = explanation_response.text
+                    explanation_response = model.generate_content(explain_the_results)
+                    explanation = explanation_response.text
 
-                st.write("🧠 **Gemini's Explanation:**")
-                st.markdown(explanation)
+                    st.write("🧠 **Gemini's Explanation:**")
+                    st.markdown(explanation)
 
-            except Exception as exec_error:
-                st.error(f"⚠️ Error running generated code: {exec_error}")
+                except Exception as exec_error:
+                    st.error(f"⚠️ Error running generated code: {exec_error}")
 
             st.session_state.chat_history.append(("assistant", f"Answer: {ANSWER}"))
 

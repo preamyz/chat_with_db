@@ -5,7 +5,7 @@ import google.generativeai as genai
 st.title("Chat with Database")
 st.subheader("Interactive Conversation with Data to Reveal Insights")
 
-# Gemini API Key #
+# -------- Gemini Config -------- #
 model = None
 try:
     genai.configure(api_key="AIzaSyDWgnaByVSYbq-bpBHcJnYsMSHLrZSv_HA")
@@ -14,15 +14,14 @@ try:
 except Exception as e:
     st.error(f"Failed to configure Gemini: {e}")
 
-# Session State #
+# -------- Session State -------- #
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "csv_data" not in st.session_state:
     st.session_state.csv_data = None
 
-# Upload Files #
-st.subheader("Browse Your Data")
-
+# -------- Upload Files -------- #
+st.subheader("📁 Upload Your Dataset")
 data_file = st.file_uploader("Upload dataset (in csv format)", type="csv")
 
 if data_file:
@@ -33,11 +32,11 @@ if data_file:
     except Exception as e:
         st.error(f"❌ Failed to read CSV: {e}")
 
-# Chat History #
+# -------- Chat History -------- #
 for role, msg in st.session_state.chat_history:
     st.chat_message(role).markdown(msg)
 
-# Chat Input #
+# -------- Chat Input -------- #
 if user_input := st.chat_input("Ask your question about the data..."):
 
     st.chat_message("user").markdown(user_input)
@@ -96,7 +95,7 @@ Output only the code. No explanation.
                     st.write("🧾 **Result (ANSWER):**")
                     st.write(ANSWER)
 
-                    # Explain Result #
+                    # -------- Explain Result -------- #
                     explain_the_results = f'''
 The user asked: "{question}"  
 Here is the result: {ANSWER}  

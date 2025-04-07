@@ -2,27 +2,28 @@ import streamlit as st
 import pandas as pd
 import google.generativeai as genai
 
-st.title("Chat with Database")
-st.subheader("Interactive Conversation with Data to Reveal Insights")
+st.set_page_config(page_title="🤖 Chat with Your Data", layout="wide")
+st.title("🤖 Chat with Your Data | AI-Powered Insights, Data Driven by Gemini")
+st.caption("Upload your dataset, then ask questions — Gemini will give natural language insights!")
 
-# Gemini API Key #
+# -------- Gemini Config -------- #
 model = None
 try:
     genai.configure(api_key="AIzaSyDWgnaByVSYbq-bpBHcJnYsMSHLrZSv_HA")
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.0-flash-lite")
     st.success("✅ Gemini model is ready!")
 except Exception as e:
     st.error(f"Failed to configure Gemini: {e}")
 
-# Session State #
+# -------- Session State -------- #
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
-if "uploaded_data" not in st.session_state:
-    st.session_state.uploaded_data = None
+if "csv_data" not in st.session_state:
+    st.session_state.csv_data = None
 
-# Upload Files #
-st.subheader("Browse Your Data")
-data_file = st.file_uploader("Upload dataset (in csv format)", type="csv")
+# -------- Upload Files -------- #
+st.subheader("📁 Upload Your Dataset")
+data_file = st.file_uploader("Upload dataset (CSV only)", type="csv")
 
 if data_file:
     try:
@@ -32,12 +33,13 @@ if data_file:
     except Exception as e:
         st.error(f"❌ Failed to read CSV: {e}")
 
-# Chat History #
-for role, message in st.session_state.chat_history:
-    st.chat_message(role).markdown(message)
+# -------- Chat History -------- #
+for role, msg in st.session_state.chat_history:
+    st.chat_message(role).markdown(msg)
 
-# Chat Input #
+# -------- Chat Input -------- #
 if user_input := st.chat_input("Ask your question about the data..."):
+
     st.chat_message("user").markdown(user_input)
     st.session_state.chat_history.append(("user", user_input))
 
@@ -80,11 +82,9 @@ Output only the code. No explanation.
             response = model.generate_content(prompt)
             code = response.text.strip("```python").strip("```").strip()
 
-            # แสดงโค้ดที่ AI สร้างขึ้น
             st.write("🧾 **Generated Code:**")
             st.code(code, language="python")
 
-            # ตรวจสอบว่ามีตัวแปร ANSWER หรือไม่
             if "ANSWER" not in code:
                 st.error("❌ Generated code does not contain 'ANSWER'.")
             else:
@@ -96,7 +96,7 @@ Output only the code. No explanation.
                     st.write("🧾 **Result (ANSWER):**")
                     st.write(ANSWER)
 
-                    # อธิบายผลลัพธ์
+                    # -------- Explain Result -------- #
                     explain_the_results = f'''
 The user asked: "{question}"  
 Here is the result: {ANSWER}  

@@ -2,28 +2,28 @@ import streamlit as st
 import pandas as pd
 import google.generativeai as genai
 
-st.set_page_config(page_title="🤖 Chat with Your Data", layout="wide")
-st.title("🤖 Chat with Your Data | AI-Powered Insights, Data Driven by Gemini")
-st.caption("Upload your dataset, then ask questions — Gemini will give natural language insights!")
+st.title("Chat with Database")
+st.subheader("Interactive Conversation with Data to Reveal Insights")
 
-# -------- Gemini Config -------- #
+# Gemini API Key #
 model = None
 try:
     genai.configure(api_key="AIzaSyDWgnaByVSYbq-bpBHcJnYsMSHLrZSv_HA")
-    model = genai.GenerativeModel("gemini-2.0-flash-lite")
+    model = genai.GenerativeModel("gemini-1.5-flash")
     st.success("✅ Gemini model is ready!")
 except Exception as e:
     st.error(f"Failed to configure Gemini: {e}")
 
-# -------- Session State -------- #
+# Session State #
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "csv_data" not in st.session_state:
     st.session_state.csv_data = None
 
-# -------- Upload Files -------- #
-st.subheader("📁 Upload Your Dataset")
-data_file = st.file_uploader("Upload dataset (CSV only)", type="csv")
+# Upload Files #
+st.subheader("Browse Your Data")
+
+data_file = st.file_uploader("Upload dataset (in csv format)", type="csv")
 
 if data_file:
     try:
@@ -33,11 +33,11 @@ if data_file:
     except Exception as e:
         st.error(f"❌ Failed to read CSV: {e}")
 
-# -------- Chat History -------- #
+# Chat History #
 for role, msg in st.session_state.chat_history:
     st.chat_message(role).markdown(msg)
 
-# -------- Chat Input -------- #
+# Chat Input #
 if user_input := st.chat_input("Ask your question about the data..."):
 
     st.chat_message("user").markdown(user_input)
@@ -96,7 +96,7 @@ Output only the code. No explanation.
                     st.write("🧾 **Result (ANSWER):**")
                     st.write(ANSWER)
 
-                    # -------- Explain Result -------- #
+                    # Explain Result #
                     explain_the_results = f'''
 The user asked: "{question}"  
 Here is the result: {ANSWER}  

@@ -8,8 +8,8 @@ st.subheader("Interactive Conversation with Data to Reveal Insights")
 # -------- Gemini Config -------- #
 model = None
 try:
-    genai.configure(api_key="AIzaSyCycIJ35pKnWIY8391m2FZB5mzh2UncVtA")
-    model = genai.GenerativeModel("gemini-2.0-flash-lite")
+    genai.configure(api_key="AIzaSyDWgnaByVSYbq-bpBHcJnYsMSHLrZSv_HA")
+    model = genai.GenerativeModel("gemini-1.5-flash")
     st.success("✅ Gemini model is ready!")
 except Exception as e:
     st.error(f"Failed to configure Gemini: {e}")

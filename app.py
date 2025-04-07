@@ -5,16 +5,9 @@ import google.generativeai as genai
 st.title("Chat with Database")
 st.subheader("Interactive Conversation with Data to Reveal Insights")
 
-gemini_api_key = st.text_input("Gemini API Key: ", placeholder="Type your API Key here...", type="password")
-
-model = None
-if gemini_api_key:
-    try:
-        genai.configure(api_key=gemini_api_key)
-        model = genai.GenerativeModel("gemini-pro")
-        st.success("Gemini API Key successfully configured.")
-    except Exception as e:
-        st.error(f"An error occurred while setting up the Gemini model: {e}")
+key = st.secrets['gemini_api_key']
+genai.configure(api_key=key)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []

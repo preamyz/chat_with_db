@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import google.generativeai as genai
 
-st.title("Chat with Database")
-st.subheader("Interactive Conversation with Data to Reveal Insights")
+st.title("Chatbot with database for Analytics")
+st.subheader("Conversational Analytics for Actionable Insights 💡")
 
 # Gemini API Key #
 model = None
@@ -21,8 +21,8 @@ if "csv_data" not in st.session_state:
     st.session_state.csv_data = None
 
 # Upload Files #
-st.subheader("📁 Upload Your Dataset")
-data_file = st.file_uploader("Upload dataset (CSV only)", type="csv")
+st.subheader("📁 Upload CSV Data")
+data_file = st.file_uploader("(Upload CSV file)", type="csv")
 
 if data_file:
     try:
@@ -31,6 +31,21 @@ if data_file:
         st.dataframe(st.session_state.csv_data.head())
     except Exception as e:
         st.error(f"❌ Failed to read CSV: {e}")
+
+# Upload Files 2 #
+st.subheader("📁 Upload Dictionary Data")
+dict_file = st.file_uploader("(Upload CSV file)", type=["csv"], key="dict_file")
+if dict_file is not None:
+    try:
+        data_dict = pd.read_csv(dict_file)
+        st.session_state.data_dictionary = data_dict
+        st.success("Data dictionary successfully uploaded and read.")
+        st.write("### Data Dictionary Preview")
+        st.dataframe(data_dict)
+        dict_info = data_dict.to_string(index=False)
+        st.session_state.data_context += f"\n\nData Dictionary:\n{dict_info}"
+    except Exception as e:
+        st.error(f"An error occurred while reading the data dictionary file: {e}")
 
 # Chat History #
 for role, msg in st.session_state.chat_history:
